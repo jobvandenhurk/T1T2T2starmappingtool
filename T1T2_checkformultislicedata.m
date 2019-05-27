@@ -65,8 +65,8 @@ for ff = 1:numel(files)
 end
 textprogressbar(' ');
 
-AcqFreq = vecFreq(headerAcq);
-InsFreq = vecFreq(headerInstances);
+AcqFreq = T1T2_vecFreq(headerAcq);
+InsFreq = T1T2_vecFreq(headerInstances);
 
 
 
@@ -98,7 +98,7 @@ end
 if NrOfSlices == 1
     % double check if header info makes slice detection impossible
     if numel(unique(TEmat))>1 && numel(unique(TEmat)) < numel(TEmat)
-        TEfreq = vecFreq(TEmat);
+        TEfreq = T1T2_vecFreq(TEmat);
         if numel(unique(TEfreq(:,2))) == 1
             NrOfSlices = TEfreq(1,2);
             disp('Header slice count information does not match with TE parameter variation. Assuming multiple slices now...');
@@ -106,7 +106,7 @@ if NrOfSlices == 1
             error('Can not detect correct slice count! Contact J.vandenhurk@scannexus.nl!');
         end
     elseif numel(unique(TRmat))>1 && numel(unique(TRmat)) < numel(TRmat)
-        TRfreq = vecFreq(TEmat);
+        TRfreq = T1T2_vecFreq(TEmat);
         if numel(unique(TRfreq(:,2))) == 1
             NrOfSlices = TRfreq(1,2);
             disp('Header slice count information does not match with TR parameter variation. Assuming multiple slices now...');
@@ -114,7 +114,7 @@ if NrOfSlices == 1
             error('Can not detect correct slice count! Contact J.vandenhurk@scannexus.nl!');
         end
     elseif numel(unique(ITmat))>1 && numel(unique(ITmat)) < numel(ITmat)
-        ITfreq = vecFreq(TEmat);
+        ITfreq = T1T2_vecFreq(TEmat);
         if numel(unique(ITfreq(:,2))) == 1
             NrOfSlices = ITfreq(1,2);
             disp('Header slice count information does not match with IT parameter variation. Assuming multiple slices now...');
@@ -122,7 +122,7 @@ if NrOfSlices == 1
             error('Can not detect correct slice count! Contact J.vandenhurk@scannexus.nl!');
         end
     elseif numel(unique(PVmat))>1 && numel(unique(PVmat)) < numel(PVmat)
-        PVfreq = vecFreq(TEmat);
+        PVfreq = T1T2_vecFreq(TEmat);
         if numel(unique(PVfreq(:,2))) == 1
             NrOfSlices = PVfreq(1,2);
             disp('Header slice count information does not match with IT (private header) parameter variation. Assuming multiple slices now...');
@@ -131,7 +131,7 @@ if NrOfSlices == 1
         end
         
     elseif numel(unique(FAmat))>1 && numel(unique(FAmat)) < numel(FAmat)
-        FAfreq = vecFreq(TEmat);
+        FAfreq = T1T2_vecFreq(TEmat);
         if numel(unique(FAfreq(:,2))) == 1
             NrOfSlices = FAfreq(1,2);
             disp('Header slice count information does not match with FA parameter variation. Assuming multiple slices now...');

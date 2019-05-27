@@ -1,6 +1,6 @@
 % ListFiletypes.m Job van den Hurk 2014 returns all files of a given
 % extention in a particular folder
-function [FileList, FileNames, FileSize] = ListFiletypes(StartFolder,extension,addfolder,matchextension)
+function [FileList, FileNames, FileSize] = T1T2_listfiletypes(StartFolder,extension,addfolder,matchextension)
 
 if ~iscell(extension)
     extension = {extension};
