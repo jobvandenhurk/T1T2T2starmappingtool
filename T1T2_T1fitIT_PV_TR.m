@@ -39,7 +39,7 @@ for xv = 1:T1MapSize(1)
             if useIT || usePV
                 if invertnegativesignal
                     % NormalizeDataToZero = invertnegativesignal;
-                    neg = Derivative(signal) < 0;
+                    neg = T1T2_derivative(signal) < 0;
                     beforenull = 0;
                     for ii = 1:numel(neg)
                         if neg(ii)
