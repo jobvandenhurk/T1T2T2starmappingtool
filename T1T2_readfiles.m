@@ -104,7 +104,7 @@ total = zTEmat + zITmat + zTRmat + zPVmat + zFAmat;
 if any(total~=total(1))
     deleteDCM = total > min(total);
     disp(['Skipping ' num2str(sum(deleteDCM)) ' files.']);
-    if size(data,3) == size(deleteDCM)
+    if size(data,3) == numel(deleteDCM)
         data(:,:,deleteDCM) = [];
     elseif size(data,3)~=sum(deleteDCM==0)
         error('Error in skipping irrelevant files: number of items do not match.');
