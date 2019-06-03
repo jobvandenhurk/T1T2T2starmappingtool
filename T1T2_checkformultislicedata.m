@@ -165,6 +165,7 @@ if NrOfSlices > 1
                 
                 if str2double(usethisslice) > 0 && str2double(usethisslice) <  NrOfSlices
                     sliceselection = round(str2double(usethisslice));
+                    
                     OK = 1;
                 else
                     disp('Slice selection out of range. Please try again.');
@@ -188,6 +189,7 @@ if usethisslice > 0
         fileselection(ii+sliceselection-1) = 1;
     end
     useallslices = 0;
+    NrOfSlices = 1;
 else
     fileselection = ones(1,numel(files));
     useallslices = 1;
