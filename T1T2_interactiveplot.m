@@ -41,6 +41,9 @@ while button==1
     if TheseVox(xx,yy)
         xdata = squeeze(usedxdata(:,xx,yy));
         ydata = squeeze(data(:,xx,yy));
+        if numel(size(fitparams)) == 2
+            fitparams = reshape(fitparams,[2 size(map)]);
+        end
         x = fitparams(:,xx,yy);
         fig = figure(124);
         movegui(fig,'northeast')
