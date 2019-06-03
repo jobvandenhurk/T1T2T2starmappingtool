@@ -1,4 +1,4 @@
-function [data,TEmat,ITmat,TRmat,PVmat,FAmat,extraData,extraFA] = T1T2_readfiles(files,fileselection,sliceselection,NrOfSlices,doubleDataexists)
+function [data,TEmat,ITmat,TRmat,PVmat,FAmat,mappingtype,extraData,extraFA] = T1T2_readfiles(files,fileselection,sliceselection,NrOfSlices,doubleDataexists,useallslices)
 
 emptyfiles = [];
 data = [];
@@ -58,15 +58,16 @@ while ff <= numel(files)
         end
         skippedslices(ff) = 0;
         
-        if ff + NrOfSlices - 1 < numel(files)
-            ff = ff + NrOfSlices-1;
-        else
-            ff = numel(files);
+        if ~useallslices
+            if ff + NrOfSlices - 1 < numel(files)
+                ff = ff + NrOfSlices-1;
+            else
+                ff = numel(files);
+            end
         end
     end
     textprogressbar((ff/numel(files) * 100));
     ff = ff + 1;
-    
 end
 
 if strfind(header.Manufacturer, 'Philips')
@@ -103,12 +104,14 @@ total = zTEmat + zITmat + zTRmat + zPVmat + zFAmat;
 
 if any(total~=total(1))
     deleteDCM = total > min(total);
+    %if ~useallslices
     disp(['Skipping ' num2str(sum(deleteDCM)) ' files.']);
     if size(data,3) == numel(deleteDCM)
         data(:,:,deleteDCM) = [];
     elseif size(data,3)~=sum(deleteDCM==0)
         error('Error in skipping irrelevant files: number of items do not match.');
     end
+    %  end
     TEmat(deleteDCM) = [];
     ITmat(deleteDCM) = [];
     TRmat(deleteDCM) = [];
@@ -132,30 +135,44 @@ if doubleDataexists % more than one sequence in data folder
 end
 
 % determine parameter of interest
-if numel(TEmat) == numel(unique(TEmat))
-   usedparameter = TEmat;
-elseif numel(ITmat) == numel(unique(ITmat))
-   usedparameter = ITmat;
-elseif numel(TRmat) == numel(unique(TRmat))
-   usedparameter = TRmat;
-elseif numel(PVmat) == numel(unique(PVmat))
-   usedparameter = PVmat;
-elseif numel(FAmat) == numel(unique(FAmat))
-   usedparameter = FAmat;
+
+if numel(TEmat)/NrOfSlices == numel(unique(TEmat))
+    usedparameter = TEmat;
+    par = 'T2/T2*';
+    mappingtype = 'useTE';
+elseif numel(ITmat)/NrOfSlices == numel(unique(ITmat))
+    usedparameter = ITmat;
+    mappingtype = 'useIT';
+    par = 'T1';
+elseif numel(TRmat)/NrOfSlices == numel(unique(TRmat))
+    usedparameter = TRmat;
+    mappingtype = 'useTR';
+    par = 'T1';
+elseif numel(PVmat)/NrOfSlices == numel(unique(PVmat))
+    usedparameter = PVmat;
+    mappingtype = 'usePV';
+    par = 'T1';
+elseif numel(FAmat)/NrOfSlices == numel(unique(FAmat))
+    usedparameter = FAmat;
+    mappingtype = 'useFA';
+    par = 'T1';
+else
+    error('Data not suitable for T1/T2/T2* mapping.');
 end
 
 
 % manual data selection
 OK = 0;
-parameterrange = 1:size(data,1);
+parameterrange = 1:numel(unique(usedparameter));
+uniqueparameters = unique(usedparameter);
 while ~OK
     parstr = [];
     for pp = 1:numel(parameterrange)
-        parstr = [parstr num2str(parameterrange(pp)) '. (' num2str(usedparameter(parameterrange(pp))) 'ms) '];
+        parstr = [parstr num2str(parameterrange(pp)) '. (' num2str(uniqueparameters(parameterrange(pp))) 'ms) '];
     end
     
     commandwindow;
-    disp(['Current parameter range: ' parstr]);
+    disp(['Current parameter range for ' par ' mapping :'  parstr]);
     v = input('Adapt selection if required (enter if OK): ','s');
     adaptedv = ['[' v ']'];
     
@@ -172,9 +189,29 @@ while ~OK
     
 end
 
-data = data(parameterrange,:,:);
-TEmat = TEmat(parameterrange);
-ITmat = ITmat(parameterrange);
-TRmat = TRmat(parameterrange);
-PVmat = PVmat(parameterrange);
-FAmat = FAmat(parameterrange);
+if ~useallslices
+    data = data(parameterrange,:,:);
+    TEmat = TEmat(parameterrange);
+    ITmat = ITmat(parameterrange);
+    TRmat = TRmat(parameterrange);
+    PVmat = PVmat(parameterrange);
+    FAmat = FAmat(parameterrange);
+else
+    delthese = ones(1,size(data,1));
+    
+    for pp = 1:numel(parameterrange);
+        delthese(((parameterrange(pp)-1) * (NrOfSlices) + 1):(parameterrange(pp)) * (NrOfSlices)) = 0;
+    end
+% %         t = ones(1,numel(uniqueparameters));
+% %         t(parameterrange) = 0;
+% %         delthese(((pp-1)*numel(uniqueparameters)) + 1:((pp-1)*numel(uniqueparameters)) + numel(uniqueparameters)) = t;
+%     end
+    
+    
+    data(delthese==1,:,:) = [];
+    TEmat(delthese==1) = [];
+    ITmat(delthese==1) = [];
+    TRmat(delthese==1) = [];
+    PVmat(delthese==1) = [];
+    FAmat(delthese==1) = [];
+end

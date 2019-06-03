@@ -1,4 +1,4 @@
-function [ismultislice, sliceselection, NrOfSlices, doubleDataexists, fileselection] = T1T2_checkformultislicedata(files)
+function [ismultislice, sliceselection, NrOfSlices, doubleDataexists, fileselection, useallslices] = T1T2_checkformultislicedata(files)
 
 % first see if data is multislice or not:
 textprogressbar('Reading headers to discover multislice information... ');
@@ -150,14 +150,18 @@ if NrOfSlices > 1
     OK = 0;
     
     while ~OK
-        usethisslice = input(['Picking slice (' num2str(sliceselection) ') for analysis. Choose another slice if wanted, or Enter to continue... '],'s');
+        usethisslice = input(['Picking slice ' num2str(sliceselection) ' for analysis. Choose another slice if wanted, or type ' '''all'''  ' if you want to map all slices (enter if OK): '],'s');
         
         if ~isempty(usethisslice)
             
             
-            if isnan(str2double(usethisslice))
+            if isnan(str2double(usethisslice)) && ~strcmp(usethisslice,'all')
                 disp('Invalid value. Please try again.');
+            elseif strcmp(usethisslice,'all')
+                usethisslice = -1;
+                OK = 1;
             else
+                
                 
                 if str2double(usethisslice) > 0 && str2double(usethisslice) <  NrOfSlices
                     sliceselection = round(str2double(usethisslice));
@@ -175,9 +179,16 @@ else
     disp('Data seems to contain single slice.');
     sliceselection = 1;
     ismultislice = 0;
+    usethisslice = 1;
 end
 
 fileselection = zeros(1,numel(files));
-for ii = 1:NrOfSlices:numel(files)
-    fileselection(ii+sliceselection-1) = 1;
+if usethisslice > 0
+    for ii = 1:NrOfSlices:numel(files)
+        fileselection(ii+sliceselection-1) = 1;
+    end
+    useallslices = 0;
+else
+    fileselection = ones(1,numel(files));
+    useallslices = 1;
 end
