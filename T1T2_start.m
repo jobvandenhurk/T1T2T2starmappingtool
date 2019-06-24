@@ -34,7 +34,7 @@ if ~isempty(mappingtype)
         multicore = 0;
     end
     
-    tic
+    
     if useallslices
         repetitions = NrOfSlices;
         fulldata = data;
@@ -48,37 +48,39 @@ if ~isempty(mappingtype)
         repetitions = 1;
     end
     for rep = 1:repetitions
+        tic
         if useallslices
-           sliceselection = rep;
-           
-           dataslicing = zeros(1,NrOfSlices*nrofparams);
-           
-           for np = 1:nrofparams
+            disp(['Processing slice ' num2str(rep) '/' num2str(repetitions)]);
+            sliceselection = rep;
+            
+            dataslicing = zeros(1,NrOfSlices*nrofparams);
+            
+            for np = 1:nrofparams
                 dataslicing(((rep-1)) + (np-1) * NrOfSlices + 1) = 1;
-           end
-          
-         data = fulldata(dataslicing==1,:,:);
-         FAmat = fullFA(dataslicing==1);  
-         ITmat = fullIT(dataslicing==1);
-         TRmat = fullTR(dataslicing==1);
-         PVmat = fullPV(dataslicing==1);
-         TEmat = fullTE(dataslicing==1);
+            end
+            
+            data = fulldata(dataslicing==1,:,:);
+            FAmat = fullFA(dataslicing==1);
+            ITmat = fullIT(dataslicing==1);
+            TRmat = fullTR(dataslicing==1);
+            PVmat = fullPV(dataslicing==1);
+            TEmat = fullTE(dataslicing==1);
         end
         switch mappingtype
             case 'useFA'
                 if multicore
                     [map,FitMap,fitparams,fun,usedxdata] = T1T2_T1fitFA_parfor(data,FAmat,TRmat,TheseVoxels,opts);
-                    delete(gcp);
+                    
                 else
                     [map,FitMap,fitparams,fun,usedxdata] = T1T2_T1fitFA(data,FAmat,TRmat,TheseVoxels,opts);
                 end
                 est_par = 'T1';
                 x_label = 'Flip angle (degrees)';
-               
+                
             case 'useIT'
                 if multicore
                     [map,FitMap,fitparams,fun,data] = T1T2_T1fitIT_parfor(data,ITmat,TRmat,TheseVoxels,opts);
-                    delete(gcp);
+                    
                 else
                     [map,FitMap,fitparams,fun,data] = T1T2_T1fitIT(data,ITmat,TRmat,TheseVoxels,opts);
                 end
@@ -89,7 +91,7 @@ if ~isempty(mappingtype)
             case 'usePV'
                 if multicore
                     [map,FitMap,fitparams,fun,data] = T1T2_T1fitIT_parfor(data,PVmat,TRmat,TheseVoxels,opts);
-                    delete(gcp);
+                    
                 else
                     [map,FitMap,fitparams,fun,data] = T1T2_T1fitIT(data,PVmat,TRmat,TheseVoxels,opts);
                 end
@@ -101,7 +103,7 @@ if ~isempty(mappingtype)
             case 'useTE'
                 if multicore
                     [map,FitMap,fitparams,fun,data] = T1T2_T2fitTE_parfor(data,TEmat,TRmat,TheseVoxels,opts);
-                    delete(gcp);
+                    
                 else
                     [map,FitMap,fitparams,fun,data] = T1T2_T2fitTE(data,TEmat,TRmat,TheseVoxels,opts);
                 end
@@ -112,7 +114,6 @@ if ~isempty(mappingtype)
             case 'useTEstar'
                 if multicore
                     [map,FitMap,fitparams,fun,data] = T1T2_T2starfit_parfor(data,TEmat,TRmat,TheseVoxels,opts);
-                    delete(gcp);
                 else
                     [map,FitMap,fitparams,fun,data] = T1T2_T2starfit(data,TEmat,TRmat,TheseVoxels,opts);
                 end
@@ -124,7 +125,10 @@ if ~isempty(mappingtype)
         end
         disp(' ');
         toc
-        T1T2_saveresults(dir,map,FitMap,fitparams,fun,usedxdata,data,est_par,TheseVoxels,x_label);
-        T1T2_interactiveplot(map,data,FitMap,fitparams,fun,TheseVoxels,usedxdata,est_par,x_label);
+        T1T2_saveresults(dir,map,FitMap,fitparams,fun,usedxdata,data,est_par,TheseVoxels,x_label,sliceselection);
+        if ~useallslices
+            T1T2_interactiveplot(map,data,FitMap,fitparams,fun,TheseVoxels,usedxdata,est_par,x_label);
+        end
     end
+    delete(gcp);
 end

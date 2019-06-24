@@ -33,6 +33,9 @@ disp('Press ESC to exit...');
 while button==1
     figure(123);
     [xx, yy, button] = ginput(1);
+    if button ~= 1
+        break
+    end
     yyy = cast(floor(yy),'int16');
     xxx = cast(floor(xx),'int16');
     

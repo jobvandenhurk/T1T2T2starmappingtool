@@ -172,6 +172,7 @@ if NrOfSlices > 1
                 end
             end
         else
+            usethisslice = sliceselection;
             OK = 1;
         end
     end
