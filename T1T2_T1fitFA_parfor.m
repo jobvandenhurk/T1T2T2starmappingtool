@@ -80,6 +80,7 @@ end
 if useLiberman
     disp('Computing T1 map by fitting Ernst equation (Liberman et al., 2014)... ');
     parfor xv = 1:T1MapSize(1) * T1MapSize(2)
+        %for xv = 1:T1MapSize(1) * T1MapSize(2)
         % for yv = 1:T1MapSize(2)
         %         if CorrectFAUsingB1Map
         %             xdata = squeeze(xdatacorr(:,xv));
@@ -93,10 +94,15 @@ if useLiberman
             
             
             x0 = [1 1];
-            
-            [x, resnorm, res,flag] = lsqcurvefit(fun,x0,xdatacorr(:,xv),ydata,[],[],opts);
+            if CorrectFAUsingB1Map
+                [x, resnorm, res,flag] = lsqcurvefit(fun,x0,xdatacorr(:,xv),ydata,[],[],opts);
+                usedFAmat(:,xv) = xdatacorr(:,xv);
+            else
+                [x, resnorm, res,flag] = lsqcurvefit(fun,x0,xdata,ydata,[],[],opts);
+                usedFAmat(:,xv) = xdata;
+            end
             fitparams(:,xv) = x;
-            usedFAmat(:,xv) = xdatacorr(:,xv);
+            
             T1Map(xv) = x(2);
             FitMap(xv) = 1 - (sum(res.^2))/sum((mean(ydata) - ydata').^2);
         end

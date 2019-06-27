@@ -14,7 +14,7 @@ clc
 if ~isempty(mappingtype)
     %T1T2_plotinitialdata(data);
     
-    TheseVoxels = T1T2_selectvoxels(data,mappingtype);
+    [TheseVoxels,VoxelSelectionRange] = T1T2_selectvoxels(data,mappingtype);
     
     % curve fitting options (generic)
     opts = optimoptions('lsqcurvefit','Algorithm','trust-region-reflective',... % trust-region-reflective levenberg-marquardt
@@ -66,6 +66,12 @@ if ~isempty(mappingtype)
             PVmat = fullPV(dataslicing==1);
             TEmat = fullTE(dataslicing==1);
         end
+        
+        TheseVoxmax = squeeze(data(1,:,:)) < max(VoxelSelectionRange);
+        TheseVoxmin = squeeze(data(1,:,:)) >= min(VoxelSelectionRange);
+        TheseVoxels = (TheseVoxmax+TheseVoxmin)==2;
+        
+    
         switch mappingtype
             case 'useFA'
                 if multicore

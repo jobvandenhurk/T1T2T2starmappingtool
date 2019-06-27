@@ -56,7 +56,7 @@ xdata = permute(xdata,[2 1 3]);
 xdatacorr = zeros(size(xdata));
 if CorrectFAUsingB1Map
     % correct FA values based on images
-
+    
     disp('Correcting nominal flip angles...');
     for ff = 1:numel(FAmat)
         xdatacorr(ff,:,:) = squeeze(xdata(ff,:,:)) .* B1corrmap;
@@ -97,11 +97,17 @@ if useLiberman
                 
                 x0 = [1 1];
                 
-                [x, resnorm, res,flag] = lsqcurvefit(fun,x0,xdata,ydata,[],[],opts);
-                fitparams(:,xv,yv) = x;
-                usedFAmat(:,xv,yv) = xdata;
-                T1Map(xv,yv) = x(2);
-                FitMap(xv,yv) = 1 - (sum(res.^2))/sum((mean(ydata) - ydata').^2);
+                if CorrectFAUsingB1Map
+                    [x, resnorm, res,flag] = lsqcurvefit(fun,x0,xdatacorr(:,xv),ydata,[],[],opts);
+                    usedFAmat(:,xv) = xdatacorr(:,xv);
+                else
+                    [x, resnorm, res,flag] = lsqcurvefit(fun,x0,xdata,ydata,[],[],opts);
+                    usedFAmat(:,xv) = xdata;
+                end
+                fitparams(:,xv) = x;
+                
+                T1Map(xv) = x(2);
+                FitMap(xv) = 1 - (sum(res.^2))/sum((mean(ydata) - ydata').^2);
                 
             end
         end

@@ -4,14 +4,14 @@ fig = figure(123);
 movegui(fig,'northwest')
 if strcmp(est_par,'T1')
     maxval = 50*ceil(2*mean(map(map>0))/50);
-    if maxval>3000
-        maxval = 3000;
+    if maxval>2000
+        maxval = 2000;
     end
     imagesc(map);colormap('jet');axis image;c = colorbar;c.Label.String = [est_par ' (ms)'];caxis([0 maxval]);
 elseif strcmp(est_par,'T2')
     maxval = 50*ceil(2*mean(map(map>0))/50);
-    if maxval>300
-        maxval = 300;
+    if maxval>150
+        maxval = 150;
     end
     imagesc(map);colormap('jet');axis image;c = colorbar;c.Label.String = [est_par ' (ms)'];caxis([0 maxval]);
 elseif strcmp(est_par,'T2star')
