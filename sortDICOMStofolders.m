@@ -6,7 +6,7 @@ if nargin<1
 end
 
 %sourcedir = '/Users/Job/Documents/fMRI/Mammo T1T2/MAMMO_VRIJWILL_5/';
-files = ListFiletypes(sourcedir,'.IMA');
+files = T1T2_listfiletypes(sourcedir,'.IMA');
 
 prtnames = cell(numel(files),1);
 
