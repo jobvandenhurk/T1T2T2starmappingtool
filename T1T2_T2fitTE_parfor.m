@@ -11,7 +11,11 @@ firstvol = squeeze(data(1,:,:));
 [X,N] = hist(firstvol(:),(max(firstvol(:)) - min(firstvol(:))));
 [~,maxap] = max(X);
 zeroval = N(maxap);
-data = data-zeroval;
+tdata = data-zeroval;
+
+if min(tdata(:))>0
+   data = tdata; 
+end
 
 
 
