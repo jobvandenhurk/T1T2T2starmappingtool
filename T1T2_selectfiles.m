@@ -14,7 +14,7 @@ if ~dir
     cd(dir)
 else
     cd(dir)
-    files = T1T2_listfiletypes(dir,'.IMA',0,1);
+    files = T1T2_listfiletypes(dir,'.dcm',0,1);
 end
 
-files = sort(files);
+files = sort(files(:));
