@@ -45,6 +45,7 @@ while ~OK
         
     else
         OK = 1;
+        close all
     end
     
 end

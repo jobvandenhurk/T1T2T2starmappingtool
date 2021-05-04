@@ -1,5 +1,5 @@
-% T1T2_start v1.0
-% Job van den Hurk, 17-05-2019
+% T1T2_start v1.3
+% Job van den Hurk, 17-11-2020
 
 clear all
 close all
@@ -20,6 +20,27 @@ if ~isempty(mappingtype)
     opts = optimoptions('lsqcurvefit','Algorithm','trust-region-reflective',... % trust-region-reflective levenberg-marquardt
         'Display','off');
     
+    
+    
+    if useallslices
+        repetitions = NrOfSlices;
+        fulldata = data;
+        fullFA = FAmat;
+        fullTR = TRmat;
+        fullIT = ITmat;
+        fullPV = PVmat;
+        fullTE = TEmat;
+        nrofparams = size(data,1) / NrOfSlices;
+        
+        if strcmp(mappingtype, 'useFA')
+            [B1Files, f2f] = T1T2_selectB1files(data,NrOfSlices);
+        end
+        
+    else
+        repetitions = 1;
+    end
+    
+    
     disp('Testing if parallel computing is available...')
     
     
@@ -34,19 +55,6 @@ if ~isempty(mappingtype)
         multicore = 0;
     end
     
-    
-    if useallslices
-        repetitions = NrOfSlices;
-        fulldata = data;
-        fullFA = FAmat;
-        fullTR = TRmat;
-        fullIT = ITmat;
-        fullPV = PVmat;
-        fullTE = TEmat;
-        nrofparams = size(data,1) / NrOfSlices;
-    else
-        repetitions = 1;
-    end
     for rep = 1:repetitions
         tic
         if useallslices
@@ -65,20 +73,42 @@ if ~isempty(mappingtype)
             TRmat = fullTR(dataslicing==1);
             PVmat = fullPV(dataslicing==1);
             TEmat = fullTE(dataslicing==1);
+            
+            
         end
         
         TheseVoxmax = squeeze(data(1,:,:)) < max(VoxelSelectionRange);
         TheseVoxmin = squeeze(data(1,:,:)) >= min(VoxelSelectionRange);
         TheseVoxels = (TheseVoxmax+TheseVoxmin)==2;
         
-    
+        
+        
         switch mappingtype
-            case 'useFA'
+            case 'useTR'
                 if multicore
-                    [map,FitMap,fitparams,fun,usedxdata] = T1T2_T1fitFA_parfor(data,FAmat,TRmat,TheseVoxels,opts);
+                    [map,FitMap,fitparams,fun,data] = T1T2_T1fitTR_parfor(data,TRmat,TheseVoxels,opts);
                     
                 else
-                    [map,FitMap,fitparams,fun,usedxdata] = T1T2_T1fitFA(data,FAmat,TRmat,TheseVoxels,opts);
+                    % [map,FitMap,fitparams,fun,data] = T1T2_T1fitIT(data,TRmat,TheseVoxels,opts);
+                    
+                    error('Serial processing for TR fitting not yet implemented.');
+                end
+                est_par = 'T1';
+                x_label = 'TR (ms)';
+                usedxdata = TRmat;
+                
+            case 'useFA'
+                if useallslices
+                    B1Map = dicomread(char(B1Files{f2f(rep)}));
+                else
+                    B1Map = [];
+                end
+                if multicore
+                    
+                    [map,FitMap,fitparams,fun,usedxdata] = T1T2_T1fitFA_parfor(data,FAmat,TRmat,TheseVoxels,B1Map,opts);
+                    
+                else
+                    [map,FitMap,fitparams,fun,usedxdata] = T1T2_T1fitFA(data,FAmat,TRmat,TheseVoxels,B1Map,opts);
                 end
                 est_par = 'T1';
                 x_label = 'Flip angle (degrees)';
