@@ -1,4 +1,4 @@
-function [data,TEmat,ITmat,TRmat,PVmat,FAmat,mappingtype,extraData,extraFA] = T1T2_readfiles(files,fileselection,sliceselection,NrOfSlices,doubleDataexists,useallslices)
+function [data,TEmat,ITmat,TRmat,PVmat,FAmat,mappingtype,header,extraData,extraFA] = T1T2_readfiles(files,fileselection,sliceselection,NrOfSlices,doubleDataexists,useallslices)
 
 emptyfiles = [];
 data = [];
@@ -10,10 +10,11 @@ FAmat = zeros(1,numel(files));
 textprogressbar('Reading files... ');
 
 ff = 1;
+header = dicominfo(files{ff},'UseDictionaryVR',true);
 while ff <= numel(files)
     
     if fileselection(ff) %~mod(ff,sliceselection)
-        header = dicominfo(files{ff},'UseDictionaryVR',true);
+        
         
         
         if ~isempty(dicomread(char(files{ff})))
@@ -168,9 +169,13 @@ uniqueparameters = unique(usedparameter);
 while ~OK
     parstr = [];
     for pp = 1:numel(parameterrange)
-        parstr = [parstr num2str(parameterrange(pp)) '. (' num2str(uniqueparameters(parameterrange(pp))) 'ms) '];
+        if ~strcmp(mappingtype,'useFA')
+            parstr = [parstr num2str(parameterrange(pp)) '. (' num2str(uniqueparameters(parameterrange(pp))) 'ms) '];
+        else
+            parstr = [parstr num2str(parameterrange(pp)) '. (' num2str(uniqueparameters(parameterrange(pp))) 'deg) '];
+            
+        end
     end
-    
     commandwindow;
     disp(['Current parameter range for ' par ' mapping :'  parstr]);
     v = input('Adapt selection if required (enter if OK): ','s');
@@ -202,10 +207,10 @@ else
     for pp = 1:numel(parameterrange);
         delthese(((parameterrange(pp)-1) * (NrOfSlices) + 1):(parameterrange(pp)) * (NrOfSlices)) = 0;
     end
-% %         t = ones(1,numel(uniqueparameters));
-% %         t(parameterrange) = 0;
-% %         delthese(((pp-1)*numel(uniqueparameters)) + 1:((pp-1)*numel(uniqueparameters)) + numel(uniqueparameters)) = t;
-%     end
+    % %         t = ones(1,numel(uniqueparameters));
+    % %         t(parameterrange) = 0;
+    % %         delthese(((pp-1)*numel(uniqueparameters)) + 1:((pp-1)*numel(uniqueparameters)) + numel(uniqueparameters)) = t;
+    %     end
     
     
     data(delthese==1,:,:) = [];

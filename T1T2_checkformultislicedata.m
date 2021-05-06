@@ -163,7 +163,7 @@ if NrOfSlices > 1
             else
                 
                 
-                if str2double(usethisslice) > 0 && str2double(usethisslice) <  NrOfSlices
+                if str2double(usethisslice) > 0 && str2double(usethisslice) <=  NrOfSlices
                     sliceselection = round(str2double(usethisslice));
                     
                     OK = 1;

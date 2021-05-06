@@ -1,13 +1,16 @@
-% T1T2_start v1.3
+% T1T2_start v1.4
 % Job van den Hurk, 17-11-2020
+% 1.4 added saveasdicom as option to result saving
 
 clear all
 close all
 clc
 
+saveasdicom = 1;
+
 [files,dir] = T1T2_selectfiles;
 [ismultislice, sliceselection,NrOfSlices,doubleDataexists,fileselection,useallslices] = T1T2_checkformultislicedata(files);
-[data,TEmat,ITmat,TRmat,PVmat,FAmat,mappingtype] = T1T2_readfiles(files,fileselection,sliceselection,NrOfSlices,doubleDataexists,useallslices);
+[data,TEmat,ITmat,TRmat,PVmat,FAmat,mappingtype,header] = T1T2_readfiles(files,fileselection,sliceselection,NrOfSlices,doubleDataexists,useallslices);
 %mappingtype = T1T2_checkmappingtype(TEmat,ITmat,TRmat,PVmat,FAmat,doubleDataexists,useallslices);
 
 
@@ -161,7 +164,7 @@ if ~isempty(mappingtype)
         end
         disp(' ');
         toc
-        T1T2_saveresults(dir,map,FitMap,fitparams,fun,usedxdata,data,est_par,TheseVoxels,x_label,sliceselection);
+        T1T2_saveresults(dir,map,FitMap,fitparams,fun,usedxdata,data,est_par,TheseVoxels,x_label,sliceselection,header,saveasdicom);
         if ~useallslices
             T1T2_interactiveplot(map,data,FitMap,fitparams,fun,TheseVoxels,usedxdata,est_par,x_label);
         end
