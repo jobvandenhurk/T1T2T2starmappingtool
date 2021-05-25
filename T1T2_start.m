@@ -10,7 +10,7 @@ saveasdicom = 1;
 
 [files,dir] = T1T2_selectfiles;
 [ismultislice, sliceselection,NrOfSlices,doubleDataexists,fileselection,useallslices] = T1T2_checkformultislicedata(files);
-[data,TEmat,ITmat,TRmat,PVmat,FAmat,mappingtype,header] = T1T2_readfiles(files,fileselection,sliceselection,NrOfSlices,doubleDataexists,useallslices);
+[data,TEmat,vTEmat,ITmat,TRmat,PVmat,FAmat,mappingtype,header] = T1T2_readfiles(files,fileselection,sliceselection,NrOfSlices,doubleDataexists,useallslices);
 %mappingtype = T1T2_checkmappingtype(TEmat,ITmat,TRmat,PVmat,FAmat,doubleDataexists,useallslices);
 
 

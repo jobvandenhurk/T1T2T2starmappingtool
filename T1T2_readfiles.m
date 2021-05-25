@@ -1,8 +1,9 @@
-function [data,TEmat,ITmat,TRmat,PVmat,FAmat,mappingtype,header,extraData,extraFA] = T1T2_readfiles(files,fileselection,sliceselection,NrOfSlices,doubleDataexists,useallslices)
+function [data,TEmat,vTEmat,ITmat,TRmat,PVmat,FAmat,mappingtype,header,extraData,extraFA] = T1T2_readfiles(files,fileselection,sliceselection,NrOfSlices,doubleDataexists,useallslices)
 
 emptyfiles = [];
 data = [];
 TEmat = zeros(1,numel(files));
+vTEmat = zeros(1,numel(files));
 ITmat = zeros(1,numel(files));
 TRmat = zeros(1,numel(files));
 PVmat = zeros(1,numel(files));
@@ -10,11 +11,11 @@ FAmat = zeros(1,numel(files));
 textprogressbar('Reading files... ');
 
 ff = 1;
-header = dicominfo(files{ff},'UseDictionaryVR',true);
+
 while ff <= numel(files)
     
     if fileselection(ff) %~mod(ff,sliceselection)
-        
+        header = dicominfo(files{ff},'UseDictionaryVR',true);
         
         
         if ~isempty(dicomread(char(files{ff})))
@@ -23,6 +24,13 @@ while ff <= numel(files)
             
             try
                 TEmat(ff) = header.EchoTime;
+            end
+            try
+                if strfind(header.ImageComments, 'TE [ms]:');
+                    vTEmat(ff) = str2double(strrep(header.ImageComments, 'TE [ms]:', ''));
+                else
+                    vTEmat(ff) = -1;
+                end
             end
             
             try
@@ -83,6 +91,7 @@ textprogressbar(' ');
 skippedslices(emptyfiles) = 1;
 
 % delete empty files
+vTEmat(skippedslices==1) = [];
 TEmat(skippedslices==1) = [];
 TRmat(skippedslices==1) = [];
 ITmat(skippedslices==1) = [];
@@ -95,13 +104,14 @@ if doubleDataexists
 end
 
 % check for non-relevant dicoms
+zvTEmat = (vTEmat==0);
 zTEmat = (TEmat==0);
 zITmat = (ITmat==0);
 zTRmat = (TRmat==0);
 zPVmat = (PVmat==0);
 zFAmat = (FAmat==0);
 
-total = zTEmat + zITmat + zTRmat + zPVmat + zFAmat;
+total = zvTEmat + zTEmat + zITmat + zTRmat + zPVmat + zFAmat;
 
 if any(total~=total(1))
     deleteDCM = total > min(total);
@@ -113,6 +123,7 @@ if any(total~=total(1))
         error('Error in skipping irrelevant files: number of items do not match.');
     end
     %  end
+    vTEmat(deleteDCM) = [];
     TEmat(deleteDCM) = [];
     ITmat(deleteDCM) = [];
     TRmat(deleteDCM) = [];
@@ -129,6 +140,7 @@ if doubleDataexists % more than one sequence in data folder
     data(doubleData,:,:) = [];
     
     TEmat(doubleData) = [];
+    vTEmat(doubleData) = [];
     ITmat(doubleData) = [];
     TRmat(doubleData) = [];
     PVmat(doubleData) = [];
@@ -141,6 +153,11 @@ if numel(TEmat)/NrOfSlices == numel(unique(TEmat))
     usedparameter = TEmat;
     par = 'T2/T2*';
     mappingtype = 'useTE';
+elseif numel(vTEmat)/NrOfSlices == numel(unique(vTEmat))
+    usedparameter = vTEmat;
+    par = 'T2/T2*';
+    mappingtype = 'useTE';
+    TEmat = vTEmat;
 elseif numel(ITmat)/NrOfSlices == numel(unique(ITmat))
     usedparameter = ITmat;
     mappingtype = 'useIT';
@@ -196,11 +213,14 @@ end
 
 if ~useallslices
     data = data(parameterrange,:,:);
+    %vTEmat = vTEmat(parameterrange);
     TEmat = TEmat(parameterrange);
     ITmat = ITmat(parameterrange);
     TRmat = TRmat(parameterrange);
     PVmat = PVmat(parameterrange);
     FAmat = FAmat(parameterrange);
+    
+    
 else
     delthese = ones(1,size(data,1));
     
@@ -214,6 +234,7 @@ else
     
     
     data(delthese==1,:,:) = [];
+    %vTEmat(delthese==1) = [];
     TEmat(delthese==1) = [];
     ITmat(delthese==1) = [];
     TRmat(delthese==1) = [];

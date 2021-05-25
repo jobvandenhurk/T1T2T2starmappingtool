@@ -6,7 +6,11 @@ save(filename,'map','FitMap','fitparams','fun','usedxdata','data','est_par','The
 disp(['Results saved to file ' filename]);
 
 if saveasdicom
-    mkdir([dir '/DICOM']);
-    cd([dir '/DICOM']);
-    dicomwrite(map, strrep(filename,'.mat','.IMA'), header);
+    if ~exist([dir '/DICOM'],'dir')
+        mkdir([dir '/DICOM']);
+    end
+    
+    dicomfilename = filename;
+    dicomfilename = strrep(dicomfilename,dir,[dir '/DICOM/']);
+    dicomwrite(map, strrep(dicomfilename,'.mat','.IMA'), header);
 end

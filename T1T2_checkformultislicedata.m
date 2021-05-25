@@ -11,7 +11,7 @@ ITmat = zeros(1,numel(files));
 TRmat = zeros(1,numel(files));
 PVmat = zeros(1,numel(files));
 FAmat = zeros(1,numel(files));
-
+vTEmat = zeros(1,numel(files));
 
 
 for ff = 1:numel(files)
@@ -19,7 +19,14 @@ for ff = 1:numel(files)
     header = dicominfo(files{ff},'UseDictionaryVR',true);
     if ~isempty(dicomread(char(files{ff})))
         
-        
+        %vTE
+        try
+            if strfind(header.ImageComments, 'TE [ms]:');
+                vTEmat(ff) = str2double(strrep(header.ImageComments, 'TE [ms]:', ''));
+            else
+                vTEmat(ff) = -1;
+            end
+        end
         
         try
             TEmat(ff) = header.EchoTime;
@@ -94,7 +101,7 @@ else
     doubleDataexists = 0;
 end
 
-
+deletefiles = zeros(1,numel(files));
 if NrOfSlices == 1
     % double check if header info makes slice detection impossible
     if numel(unique(TEmat(TEmat>0)))>1 && numel(unique(TEmat(TEmat>0))) < numel(TEmat(TEmat>0))
@@ -135,6 +142,17 @@ if NrOfSlices == 1
         if numel(unique(FAfreq(:,2))) == 1
             NrOfSlices = FAfreq(1,2);
             disp('Header slice count information does not match with FA parameter variation. Assuming multiple slices now...');
+        else
+            error('Can not detect correct slice count! Contact J.vandenhurk@scannexus.nl!');
+        end
+        
+        
+    elseif numel(unique(vTEmat(vTEmat>0)))>1 && numel(unique(vTEmat(vTEmat>0))) < numel(vTEmat(vTEmat>0))
+        vTEfreq = T1T2_vecFreq(vTEmat);
+        deletefiles(vTEmat == -1) = 1;
+        if numel(unique(vTEfreq(vTEfreq(:,1)>0,2))) == 1
+            NrOfSlices = vTEfreq(end,2);
+            disp('Header slice count information does not match with TE parameter variation. Assuming multiple slices now...');
         else
             error('Can not detect correct slice count! Contact J.vandenhurk@scannexus.nl!');
         end
@@ -193,5 +211,8 @@ if usethisslice > 0
     NrOfSlices = 1;
 else
     fileselection = ones(1,numel(files));
+    
     useallslices = 1;
 end
+
+fileselection(deletefiles==1) = 0;
