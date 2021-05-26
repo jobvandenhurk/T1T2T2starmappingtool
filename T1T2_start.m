@@ -1,6 +1,7 @@
-% T1T2_start v1.4
+% T1T2_start v1.5
 % Job van den Hurk, 17-11-2020
 % 1.4 added saveasdicom as option to result saving
+% 1.5 added biexponential fitting for vTE T2 mapping
 
 clear all
 close all
@@ -55,7 +56,7 @@ if ~isempty(mappingtype)
         multicore = 1;
     catch
         disp('No parallel computing available!');
-        multicore = 0;
+         multicore = 0;
     end
     
     for rep = 1:repetitions
@@ -150,6 +151,16 @@ if ~isempty(mappingtype)
                 x_label = 'Echo Time (ms)';
                 usedxdata = TEmat;
                 
+            case 'usevTE'
+                if multicore
+                    [map,FitMap,fitparams,map_bi,FitMap_bi,fitparams_bi,fun,fun_bi,data] = T1T2_T2fitTE_biexpo_parfor(data,TEmat,TRmat,TheseVoxels,opts);
+                    
+                else
+                    [map,FitMap,fitparams,map_bi,FitMap_bi,fitparams_bi,fun,fun_bi,data] = T1T2_T2fitTE_biexpo(data,TEmat,TRmat,TheseVoxels,opts);
+                end
+                est_par = 'T2star';
+                x_label = 'Echo Time (ms)';
+                usedxdata = TEmat;
             case 'useTEstar'
                 if multicore
                     [map,FitMap,fitparams,fun,data] = T1T2_T2starfit_parfor(data,TEmat,TRmat,TheseVoxels,opts);
@@ -164,9 +175,13 @@ if ~isempty(mappingtype)
         end
         disp(' ');
         toc
-        T1T2_saveresults(dir,map,FitMap,fitparams,fun,usedxdata,data,est_par,TheseVoxels,x_label,sliceselection,header,saveasdicom);
-        if ~useallslices
-            T1T2_interactiveplot(map,data,FitMap,fitparams,fun,TheseVoxels,usedxdata,est_par,x_label);
+        if ~strcmp(mappingtype,'usevTE')
+            T1T2_saveresults(dir,map,FitMap,fitparams,fun,usedxdata,data,est_par,TheseVoxels,x_label,sliceselection,header,saveasdicom);
+            if ~useallslices
+                T1T2_interactiveplot(map,data,FitMap,fitparams,fun,TheseVoxels,usedxdata,est_par,x_label);
+            end
+        else
+            T1T2_saveresults_biexponential(dir,map,map_bi,FitMap,FitMap_bi,fitparams,fitparams_bi,fun,fun_bi,usedxdata,data,est_par,TheseVoxels,x_label,sliceselection,header,saveasdicom);
         end
     end
     delete(gcp);

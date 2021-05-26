@@ -156,7 +156,7 @@ if numel(TEmat)/NrOfSlices == numel(unique(TEmat))
 elseif numel(vTEmat)/NrOfSlices == numel(unique(vTEmat))
     usedparameter = vTEmat;
     par = 'T2/T2*';
-    mappingtype = 'useTE';
+    mappingtype = 'usevTE';
     TEmat = vTEmat;
 elseif numel(ITmat)/NrOfSlices == numel(unique(ITmat))
     usedparameter = ITmat;
